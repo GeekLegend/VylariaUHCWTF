@@ -8,8 +8,9 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
-import fr.geeklegend.vylaria.api.bungeecord.BungeecordManager;
-import fr.geeklegend.vylaria.uhcwtf.game.states.GameStates;
+import fr.geeklegend.vylaria.api.VylariaAPI;
+import fr.geeklegend.vylaria.uhcwtf.config.Config;
+import fr.geeklegend.vylaria.uhcwtf.game.GameState;
 
 public class PlayerInteractListener implements Listener
 {
@@ -20,20 +21,21 @@ public class PlayerInteractListener implements Listener
 		Player player = event.getPlayer();
 		Action action = event.getAction();
 		ItemStack item = event.getItem();
-		
+
 		if (item != null)
 		{
 			if (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK)
 			{
-				if (!GameStates.isState(GameStates.GAME))
+				if (GameState.isState(GameState.WAITING))
 				{
-					if (item.getType() == Material.BED)
+					if (item.getType() == Material.valueOf(Config.getDefaultConfig()
+							.getString("setups.join.items.leave.material").toUpperCase().replace(" ", "_")))
 					{
-						BungeecordManager.sendToServer(player, "hub");
+						VylariaAPI.getInstance().getBungeeChannelApi().connect(player, "lobby");
 					}
 				}
 			}
 		}
 	}
-	
+
 }

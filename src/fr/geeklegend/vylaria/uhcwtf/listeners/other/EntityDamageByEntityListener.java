@@ -1,13 +1,16 @@
 package fr.geeklegend.vylaria.uhcwtf.listeners.other;
 
-import org.bukkit.entity.Creature;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.FishHook;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
-import fr.geeklegend.vylaria.uhcwtf.game.manager.GameManager;
+import fr.geeklegend.vylaria.uhcwtf.game.GameManager;
+import fr.geeklegend.vylaria.uhcwtf.game.GameState;
 
 public class EntityDamageByEntityListener implements Listener
 {
@@ -17,19 +20,28 @@ public class EntityDamageByEntityListener implements Listener
 	{
 		Entity damaged = event.getEntity();
 		Entity damager = event.getDamager();
-		double damage = event.getDamage();
+		DamageCause damageCause = event.getCause();
 
-		if (damaged instanceof Creature)
+		if (!GameState.isState(GameState.WAITING))
 		{
-			if (damager instanceof Player)
+			if (!GameManager.isPvP())
 			{
-				Creature victim = (Creature) damaged;
-				Player killer = (Player) damager;
-
-				if (victim.getHealth() <= damage)
+				if (damager instanceof FishHook)
 				{
-					victim.remove();
-					victim.getWorld().dropItemNaturally(victim.getLocation(), GameManager.getRandomItem());
+					event.setCancelled(true);
+				} else if (damager instanceof Arrow)
+				{
+					Arrow arrow = (Arrow) damager;
+
+					if (arrow.getShooter() instanceof Player)
+					{
+						Entity entityHit = event.getEntity();
+
+						if (entityHit instanceof Player)
+						{
+							event.setCancelled(true);
+						}
+					}
 				}
 			}
 		}

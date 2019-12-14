@@ -5,6 +5,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason;
 
+import fr.geeklegend.vylaria.uhcwtf.game.GameState;
+
 public class EntityRegainHealthListener implements Listener
 {
 	
@@ -13,9 +15,12 @@ public class EntityRegainHealthListener implements Listener
 	{
 		RegainReason reason = event.getRegainReason();
 		
-		if (reason == RegainReason.SATIATED || reason == RegainReason.REGEN)
+		if (GameState.isState(GameState.GAME))
 		{
-			event.setCancelled(true);
+			if (reason == RegainReason.SATIATED || reason == RegainReason.REGEN)
+			{
+				event.setCancelled(true);
+			}
 		}
 	}
 

@@ -6,10 +6,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-import fr.geeklegend.vylaria.api.VylariaAPI;
 import fr.geeklegend.vylaria.api.mysql.data.manager.PlayerDataManager;
-import fr.geeklegend.vylaria.uhcwtf.UHCWTF;
-import fr.geeklegend.vylaria.uhcwtf.game.states.GameStates;
+import fr.geeklegend.vylaria.uhcwtf.UhcWTF;
+import fr.geeklegend.vylaria.uhcwtf.config.Config;
+import fr.geeklegend.vylaria.uhcwtf.game.GameManager;
+import fr.geeklegend.vylaria.uhcwtf.game.GameState;
 
 public class PlayerQuitListener implements Listener
 {
@@ -18,16 +19,25 @@ public class PlayerQuitListener implements Listener
 	public void onPlayerQuit(PlayerQuitEvent event)
 	{
 		Player player = event.getPlayer();
-		
+	
 		PlayerDataManager.savePlayerData(player);
 		
-		UHCWTF.getInstance().getScoreboardManager().onLogout(player);
-
-		if (!GameStates.isState(GameStates.GAME))
+		UhcWTF.getInstance().getScoreboardManager().onLogout(player);
+		
+		if (!GameState.isState(GameState.GAME))
 		{
-			VylariaAPI.getInstance().getMySQL().removeOnline("uhcwtf");
+			event.setQuitMessage(Config.getDefaultConfig().getString("messages.quit").replace("&", "§")
+					.replace("%playername%", player.getName())
+					.replace("%online%", "" + (Bukkit.getOnlinePlayers().size() - 1))
+					.replace("%maxonline%", "" + Bukkit.getMaxPlayers()));
+		} else
+		{
+			if (GameManager.playersContains(player))
+			{
+				GameManager.removePlayer(player);				
+			}
 			
-			event.setQuitMessage("§e" + player.getName() + " §7a quitter la partie ! §e(" + (Bukkit.getOnlinePlayers().size() - 1) + "/" + Bukkit.getMaxPlayers() + ")");
+			event.setQuitMessage(null);
 		}
 	}
 	

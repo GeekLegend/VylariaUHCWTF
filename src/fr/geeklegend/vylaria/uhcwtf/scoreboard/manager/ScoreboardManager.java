@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
-import fr.geeklegend.vylaria.uhcwtf.UHCWTF;
+import fr.geeklegend.vylaria.uhcwtf.UhcWTF;
 import fr.geeklegend.vylaria.uhcwtf.scoreboard.PersonalScoreboard;
 
 /*
@@ -42,17 +42,17 @@ public class ScoreboardManager
 		ipCharIndex = 0;
 		cooldown = 0;
 
-		glowingTask = UHCWTF.getInstance().getScheduledExecutorService().scheduleAtFixedRate(() ->
+		glowingTask = UhcWTF.getInstance().getScheduledExecutorService().scheduleAtFixedRate(() ->
 		{
 			String ip = colorIpAt();
 			for (PersonalScoreboard scoreboard : scoreboards.values())
-				UHCWTF.getInstance().getExecutorMonoThread().execute(() -> scoreboard.setLines(ip));
+				UhcWTF.getInstance().getExecutorMonoThread().execute(() -> scoreboard.setLines(ip));
 		}, 80, 80, TimeUnit.MILLISECONDS);
 
-		reloadingTask = UHCWTF.getInstance().getScheduledExecutorService().scheduleAtFixedRate(() ->
+		reloadingTask = UhcWTF.getInstance().getScheduledExecutorService().scheduleAtFixedRate(() ->
 		{
 			for (PersonalScoreboard scoreboard : scoreboards.values())
-				UHCWTF.getInstance().getExecutorMonoThread().execute(scoreboard::reloadData);
+				UhcWTF.getInstance().getExecutorMonoThread().execute(scoreboard::reloadData);
 		}, 1, 1, TimeUnit.SECONDS);
 	}
 

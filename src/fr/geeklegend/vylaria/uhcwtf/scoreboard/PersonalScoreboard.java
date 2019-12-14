@@ -6,9 +6,13 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import fr.geeklegend.vylaria.uhcwtf.game.states.GameStates;
-import fr.geeklegend.vylaria.uhcwtf.schedulers.start.StartScheduler;
-import fr.geeklegend.vylaria.uhcwtf.schedulers.time.TimeScheduler;
+import fr.geeklegend.vylaria.uhcwtf.game.BorderManager;
+import fr.geeklegend.vylaria.uhcwtf.game.GameManager;
+import fr.geeklegend.vylaria.uhcwtf.game.GameState;
+import fr.geeklegend.vylaria.uhcwtf.schedulers.BorderTimeScheduler;
+import fr.geeklegend.vylaria.uhcwtf.schedulers.PvPScheduler;
+import fr.geeklegend.vylaria.uhcwtf.schedulers.StartScheduler;
+import fr.geeklegend.vylaria.uhcwtf.schedulers.TimeScheduler;
 import fr.geeklegend.vylaria.uhcwtf.scoreboard.objective.ObjectiveSign;
 
 /*
@@ -49,42 +53,53 @@ public class PersonalScoreboard
 
 	public void setLines(String ip)
 	{
-		String timeTimerFormat = new SimpleDateFormat("mm:ss").format(Integer.valueOf(TimeScheduler.getTimer() * 1000));
-
-		objectiveSign.setDisplayName("§e§lUHC WTF");
-		if (GameStates.isState(GameStates.WAITING))
+		if (GameState.isState(GameState.WAITING))
 		{
-			objectiveSign.setLine(0, "§7Id: " + Bukkit.getMotd());
-			objectiveSign.setLine(1, "§6 ");
-			objectiveSign.setLine(2, "§6" + player.getName());
-			objectiveSign.setLine(3, "§2 ");
-			objectiveSign.setLine(4,
-					"§7Joueur(s) » §a" + Bukkit.getOnlinePlayers().size() + "/" + Bukkit.getMaxPlayers());
-			objectiveSign.setLine(5, "§1 ");
+			objectiveSign.setDisplayName("§7- §eUhcWTF §7-");
+			objectiveSign.setLine(0, "§1§6 ");
+			objectiveSign.setLine(1, "§1§7Joueurs » §a" + Bukkit.getOnlinePlayers().size() + "/" + Bukkit.getMaxPlayers());
+			objectiveSign.setLine(2, "§1§2 ");
 			if (!StartScheduler.isRunning())
 			{
-				objectiveSign.setLine(6, "§7En attente...");
+				objectiveSign.setLine(3, "§cEn attente...");
 			} else
 			{
-				objectiveSign.setLine(6, "§e" + StartScheduler.getTimer() + " seconde(s)");
+				objectiveSign.setLine(3, "§e" + StartScheduler.getTimer() + " seconde(s)");
 			}
-			objectiveSign.setLine(7, "§4 ");
-			objectiveSign.setLine(8, ip);
-		} else if (GameStates.isState(GameStates.PREGAME) || GameStates.isState(GameStates.GAME))
+			objectiveSign.setLine(4, "§1§1 ");
+			objectiveSign.setLine(5, "§7Id §f" + Bukkit.getMotd());
+			objectiveSign.setLine(6, "§1§4 ");
+			objectiveSign.setLine(7, ip);
+		} else
 		{
-			objectiveSign.setLine(0, "§7Id: " + Bukkit.getMotd());
-			objectiveSign.setLine(1, "§6§2 ");
-			objectiveSign.setLine(2, "§2§6" + player.getName());
-			objectiveSign.setLine(3, "§1§2 ");
-			objectiveSign.setLine(4, "§7Temps: §e" + timeTimerFormat);
-			objectiveSign.setLine(5, "§4§2 ");
-			objectiveSign.setLine(6, "§7PvP: §cX");
-			objectiveSign.setLine(7, "§7Bordure: §cX");
-			objectiveSign.setLine(8, "§3§2 ");
-			objectiveSign.setLine(9,
-					"§7Joueur(s) » §a" + Bukkit.getOnlinePlayers().size() + "/" + Bukkit.getMaxPlayers());
-			objectiveSign.setLine(10, "§8§2 ");
-			objectiveSign.setLine(11, ip);
+			String timeFormat = new SimpleDateFormat("mm:ss").format(Integer.valueOf(TimeScheduler.getTimer() * 1000));
+			String pvpTimeFormat = new SimpleDateFormat("mm:ss").format(Integer.valueOf(PvPScheduler.getTimer() * 1000));
+			String borderTimeFormat = new SimpleDateFormat("mm:ss").format(Integer.valueOf(BorderTimeScheduler.getTimer() * 1000));
+
+			objectiveSign.setDisplayName("§7- §eUhcWTF §7| §e" + timeFormat + " §7-");
+			objectiveSign.setLine(0, "§2§6 ");
+			objectiveSign.setLine(1, "§2§7Joueurs » §a" + Bukkit.getOnlinePlayers().size() + "/" + Bukkit.getMaxPlayers());
+			objectiveSign.setLine(2, "§2§2 ");
+			objectiveSign.setLine(3, "§eTemps:");
+			if (!GameManager.isPvP())
+			{
+				objectiveSign.setLine(4, " §7PvP » §e" + pvpTimeFormat);
+			} else
+			{
+				objectiveSign.setLine(4, " §7PvP » §2✔");
+			}
+			if (!GameManager.isBorder())
+			{
+				objectiveSign.setLine(5, " §7Bordure » §e" + borderTimeFormat);
+			} else
+			{
+				objectiveSign.setLine(5, " §7Bordure » §2✔");
+			}
+			objectiveSign.setLine(6, "§2§1 ");
+			objectiveSign.setLine(7, "§eBordure:");
+			objectiveSign.setLine(8, " §7Taille » §e" + BorderManager.getSize() + "§7 / §e-" + BorderManager.getSize());
+			objectiveSign.setLine(9, "§2§4 ");
+			objectiveSign.setLine(10, ip);
 		}
 		objectiveSign.updateLines();
 	}

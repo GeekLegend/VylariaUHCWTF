@@ -1,4 +1,4 @@
-package fr.geeklegend.vylaria.uhcwtf.utils.world;
+package fr.geeklegend.vylaria.uhcwtf.utils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -6,9 +6,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Field;
 
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
+import org.bukkit.Location;
 
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
@@ -28,7 +29,7 @@ import com.sk89q.worldedit.world.registry.WorldData;
 public class WorldUtils
 {
 
-	public void copyFolder(File src, File dest) throws IOException
+	public static void copyFolder(File src, File dest) throws IOException
 	{
 
 		if (src.isDirectory())
@@ -40,6 +41,7 @@ public class WorldUtils
 			}
 
 			String files[] = src.list();
+
 			for (String file : files)
 			{
 				File srcFile = new File(src, file);
@@ -49,30 +51,27 @@ public class WorldUtils
 
 		} else
 		{
-
 			InputStream in = new FileInputStream(src);
 			OutputStream out = new FileOutputStream(dest);
 
-			byte[] b = new byte[1204];
-			int length;
+			byte[] buffer = new byte[1024];
 
-			while ((length = in.read()) > 0)
+			int length;
+			while ((length = in.read(buffer)) > 0)
 			{
-				out.write(b, 0, length);
+				out.write(buffer, 0, length);
 			}
 
 			in.close();
 			out.close();
-
 		}
-
 	}
 
-	public static void deleteWorld(File file)
+	public static boolean deleteWorld(File path)
 	{
-		if (file.exists())
+		if (path.exists())
 		{
-			File files[] = file.listFiles();
+			File files[] = path.listFiles();
 			for (int i = 0; i < files.length; i++)
 			{
 				if (files[i].isDirectory())
@@ -83,21 +82,41 @@ public class WorldUtils
 					files[i].delete();
 				}
 			}
+		}
+		return (path.delete());
+	}
+	
+	public static void changeBiome(String biome)
+	{
+		try
+		{
+			String mojangPath = "net.minecraft.server."
+					+ Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3];
+			Class<?> clazz = Class.forName(mojangPath + ".BiomeBase");
 
+			Field plainsField = clazz.getDeclaredField(biome);
+			plainsField.setAccessible(true);
+			Object plainsBiome = plainsField.get(null);
+
+			Field biomesField = clazz.getDeclaredField("biomes");
+			biomesField.setAccessible(true);
+			Object[] biomes = (Object[]) biomesField.get(null);
+
+			for (int i = 0; i < biomes.length; i++)
+			{
+				biomes[i] = plainsBiome;
+			}
+			biomesField.set(null, biomes);
+		} catch (Exception e)
+		{
+			e.printStackTrace();
 		}
 	}
 
-	public static void loadSchematic(Player player, String name, boolean ignoreAirBlocks)
+	public static void loadSchematic(Location location, String name, boolean ignoreAirBlocks)
 	{
 		File file = new File("./plugins/WorldEdit/schematics/" + name + ".schematic");
-		Vector to = new Vector();
-		if (name.equalsIgnoreCase("spawn"))
-		{
-			to = new Vector(0, 300, 0);
-		} else
-		{
-			to = new Vector(player.getLocation().getX(), player.getLocation().getY(), player.getLocation().getZ());
-		}
+		Vector to = new Vector(location.getX(), location.getY(), location.getZ());
 		World weWorld = new BukkitWorld(Bukkit.getWorld("world"));
 		WorldData worldData = weWorld.getWorldData();
 		try

@@ -1,7 +1,9 @@
-package fr.geeklegend.vylaria.uhcwtf.game.manager;
+package fr.geeklegend.vylaria.uhcwtf.game;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import org.bukkit.Bukkit;
@@ -10,49 +12,52 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.WorldBorder;
-import org.bukkit.block.Block;
+import org.bukkit.World.Environment;
+import org.bukkit.WorldCreator;
+import org.bukkit.WorldType;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scoreboard.DisplaySlot;
-import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Score;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.ScoreboardManager;
 
 import com.google.common.collect.Lists;
 
-import fr.geeklegend.vylaria.api.cuboid.Cuboid;
-import fr.geeklegend.vylaria.uhcwtf.UHCWTF;
-import fr.geeklegend.vylaria.uhcwtf.utils.world.WorldUtils;
+import fr.geeklegend.vylaria.uhcwtf.config.Config;
+import fr.geeklegend.vylaria.uhcwtf.tablist.Tablist;
+import fr.geeklegend.vylaria.uhcwtf.utils.WorldUtils;
 
 public class GameManager
 {
 
-	public static Cuboid WAITING_CAGE_CUBOID = new Cuboid(new Location(Bukkit.getWorlds().get(0), 27, 94, 16),
-			new Location(Bukkit.getWorlds().get(0), 6, 87, -5));
-
-	private static List<Location> cages = new ArrayList<Location>();
+	private static List<String> biomes = new ArrayList<String>();
+	private static List<Player> spectators = new ArrayList<Player>();
+	private static List<Player> players = new ArrayList<Player>();
 	private static List<ItemStack> items = new ArrayList<ItemStack>();
+	private static Map<Player, Location> previousLocation = new HashMap<Player, Location>();
+	private static boolean isPvP, isBorder;
 
 	public static void load()
 	{
-		for (World worlds : UHCWTF.getInstance().getServer().getWorlds())
-		{
-			worlds.setStorm(false);
-			worlds.setThundering(false);
-			worlds.setDifficulty(Difficulty.NORMAL);
-			worlds.setTime(1000L);
-			worlds.setGameRuleValue("doDaylightCycle", "false");
-			worlds.setGameRuleValue("doMobSpawning", "false");
+		loadBiomes();
+		
+		WorldUtils.changeBiome(GameManager.getRandomBiome());
+		WorldCreator worldCreator = new WorldCreator(Config.getDefaultConfig().getString("game.world.name"));
+		worldCreator.environment(Environment.NORMAL);
+		worldCreator.type(WorldType.LARGE_BIOMES);
+		
+		Bukkit.createWorld(worldCreator);
+		
+		World world = Bukkit.getWorld(Config.getDefaultConfig().getString("game.world.name"));
+		world.setDifficulty(Difficulty.NORMAL);
+		world.setTime(1000L);
+		world.setStorm(false);
+		world.setThundering(false);
+		world.setGameRuleValue("doDaylightCycle", "false");
 
-			WorldBorder worldBorder = worlds.getWorldBorder();
-			worldBorder.setCenter(0, 0);
-			worldBorder.setSize(750);
+		clearEntities(world);
 
-			clearEntities(worlds);
-		}
+		loadItems();
+
+		Tablist.setHealth();
 	}
 
 	public static void clearEntities(World world)
@@ -62,73 +67,16 @@ public class GameManager
 			entity.remove();
 		}
 	}
-
-	public static void setHealthTabList()
-	{
-		ScoreboardManager scoreboardManager = Bukkit.getScoreboardManager();
-		Scoreboard scoreboard = scoreboardManager.getNewScoreboard();
-		Objective health = scoreboard.registerNewObjective("Health", "health");
-		health.setDisplaySlot(DisplaySlot.PLAYER_LIST);
-
-		
-		for (Player players : Bukkit.getOnlinePlayers())
-		{
-			players.setScoreboard(scoreboard);
-			
-			Score score = health.getScore(players);
-			score.setScore((int) (players.getHealth() * 5));
-		}
-	}
-
-	public static void preGameSetup()
-	{
-		for (Player players : Bukkit.getOnlinePlayers())
-		{
-			players.getInventory().clear();
-			players.setGameMode(GameMode.SURVIVAL);
-		}
-	}
-
-	public static void loadCages()
-	{
-		cages.add(new Location(Bukkit.getWorlds().get(0), 177.5, 150.0, 146.5, -180, 0));
-		cages.add(new Location(Bukkit.getWorlds().get(0), 33.5, 150.0, 268.5, -180, 0));
-		cages.add(new Location(Bukkit.getWorlds().get(0), -159.5, 150.0, 151.5, -180, 0));
-		cages.add(new Location(Bukkit.getWorlds().get(0), x, y, z, -180, 0));
-		cages.add(new Location(Bukkit.getWorlds().get(0), x, y, z, -180, 0));
-		cages.add(new Location(Bukkit.getWorlds().get(0), x, y, z, -180, 0));
-		cages.add(new Location(Bukkit.getWorlds().get(0), x, y, z, -180, 0));
-		cages.add(new Location(Bukkit.getWorlds().get(0), x, y, z, -180, 0));
-		cages.add(new Location(Bukkit.getWorlds().get(0), x, y, z, -180, 0));
-		cages.add(new Location(Bukkit.getWorlds().get(0), x, y, z, -180, 0));
-		cages.add(new Location(Bukkit.getWorlds().get(0), x, y, z, -180, 0));
-		cages.add(new Location(Bukkit.getWorlds().get(0), x, y, z, -180, 0));
-		cages.add(new Location(Bukkit.getWorlds().get(0), x, y, z, -180, 0));
-		cages.add(new Location(Bukkit.getWorlds().get(0), x, y, z, -180, 0));
-		cages.add(new Location(Bukkit.getWorlds().get(0), x, y, z, -180, 0));
-		cages.add(new Location(Bukkit.getWorlds().get(0), x, y, z, -180, 0));
-		cages.add(new Location(Bukkit.getWorlds().get(0), x, y, z, -180, 0));
-		cages.add(new Location(Bukkit.getWorlds().get(0), x, y, z, -180, 0));
-		cages.add(new Location(Bukkit.getWorlds().get(0), x, y, z, -180, 0));
-		cages.add(new Location(Bukkit.getWorlds().get(0), x, y, z, -180, 0));
-		cages.add(new Location(Bukkit.getWorlds().get(0), x, y, z, -180, 0));
-		cages.add(new Location(Bukkit.getWorlds().get(0), x, y, z, -180, 0));
-		cages.add(new Location(Bukkit.getWorlds().get(0), x, y, z, -180, 0));
-		cages.add(new Location(Bukkit.getWorlds().get(0), x, y, z, -180, 0));
-	}
-	public static void generateCages()
-	{
-		WorldUtils.loadSchematic(player, name, true);
-	}
-
-	public static void destroyWaitingCage()
-	{
-		for (Block blocks : WAITING_CAGE_CUBOID)
-		{
-			blocks.setType(Material.AIR);
-		}
-	}
 	
+	public static void loadBiomes()
+	{
+		biomes.add("jungle");
+		biomes.add("moutains");
+		biomes.add("desert");
+		biomes.add("savanna");
+		biomes.add("badlands");
+	}
+
 	public static void loadItems()
 	{
 		items.add(new ItemStack(Material.STONE));
@@ -169,6 +117,7 @@ public class GameManager
 		items.add(new ItemStack(Material.ENCHANTMENT_TABLE));
 		items.add(new ItemStack(Material.BREWING_STAND_ITEM));
 		items.add(new ItemStack(Material.ANVIL));
+		items.add(new ItemStack(Material.INK_SACK, 5, (byte) 4));
 		items.add(new ItemStack(Material.QUARTZ_ORE));
 		items.add(new ItemStack(Material.IRON_SPADE));
 		items.add(new ItemStack(Material.IRON_PICKAXE));
@@ -252,7 +201,7 @@ public class GameManager
 		items.add(new ItemStack(Material.BLAZE_POWDER));
 		items.add(new ItemStack(Material.MAGMA_CREAM));
 		items.add(new ItemStack(Material.SPECKLED_MELON));
-		items.add(new ItemStack(Material.EXP_BOTTLE, 4));
+		items.add(new ItemStack(Material.EXP_BOTTLE, 5));
 		items.add(new ItemStack(Material.GOLDEN_CARROT, 4));
 		items.add(new ItemStack(Material.EXPLOSIVE_MINECART));
 		items.add(new ItemStack(Material.POWERED_RAIL));
@@ -304,15 +253,147 @@ public class GameManager
 		items.add(new ItemStack(Material.SMOOTH_STAIRS));
 	}
 
+	public static void preGameSetup()
+	{
+		for (Player players : Bukkit.getOnlinePlayers())
+		{
+			GameManager.addPlayer(players);
+			
+			players.setLevel(0);
+			players.getInventory().clear();
+		}
+
+		teleport();
+	}
+
+	public static void gameSetup()
+	{
+		for (Player players : Bukkit.getOnlinePlayers())
+		{
+			players.setGameMode(
+					GameMode.valueOf(Config.getDefaultConfig().getString("setups.game.gamemode").toUpperCase()));
+		}
+	}
+
+	public static void teleport()
+	{
+		for (Player players : Bukkit.getOnlinePlayers())
+		{
+			Random random = new Random();
+
+			int x = players.getLocation().getBlockX() + random.nextInt(200);
+			int y = 150;
+			int z = players.getLocation().getBlockZ() + random.nextInt(200);
+
+			Location location = new Location(Bukkit.getWorld(Config.getDefaultConfig().getString("game.world.name")),
+					x + 1.5, y, z + 1);
+
+			players.teleport(location);
+
+			addPreviousLocation(players, location);
+
+			WorldUtils.loadSchematic(
+					new Location(Bukkit.getWorld(Config.getDefaultConfig().getString("game.world.name")), x, y, z),
+					"uhcwtfsolocage", true);
+		}
+	}
+	
+	public static String getRandomBiome()
+	{
+		List<String> givenList = Lists.newArrayList(biomes);
+		int randomIndex = new Random().nextInt(givenList.size());
+		String randomBiome = givenList.get(randomIndex);
+		givenList.remove(randomIndex);
+		return randomBiome;
+	}
+
 	public static ItemStack getRandomItem()
 	{
 		List<ItemStack> givenList = Lists.newArrayList(items);
-
 		int randomIndex = new Random().nextInt(givenList.size());
 		ItemStack randomItem = givenList.get(randomIndex);
 		givenList.remove(randomIndex);
-
 		return randomItem;
+	}
+	
+	public static void addPlayer(Player player)
+	{
+		players.add(player);
+	}
+
+	public static void removePlayer(Player player)
+	{
+		players.remove(player);
+	}
+
+	public static boolean playersContains(Player player)
+	{
+		return players.contains(player);
+	}
+	
+	public static List<Player> getPlayers()
+	{
+		return players;
+	}
+	
+	public static void addSpectator(Player player)
+	{
+		spectators.add(player);
+	}
+
+	public static void removeSpectator(Player player)
+	{
+		spectators.remove(player);
+	}
+
+	public static boolean spectatorsContains(Player player)
+	{
+		return spectators.contains(player);
+	}
+
+	public static List<Player> getSpectators()
+	{
+		return spectators;
+	}
+
+	public static Location getPreviousLocation(Player player)
+	{
+		return previousLocation.get(player);
+	}
+
+	public static void addPreviousLocation(Player player, Location location)
+	{
+		previousLocation.put(player, location);
+	}
+
+	public static void removePreviousLocation(Player player)
+	{
+		previousLocation.remove(player);
+	}
+
+	public static boolean previousLocationContains(Player player)
+	{
+		return previousLocation.containsKey(player);
+	}
+
+	public static boolean isPvP()
+	{
+		return isPvP;
+	}
+
+	public static void setPvP(boolean isPvP)
+	{
+		GameManager.isPvP = isPvP;
+	}
+
+	public static boolean isBorder()
+	{
+		return isBorder;
+	}
+
+	public static void setBorder(boolean isBorder)
+	{
+		GameManager.isBorder = isBorder;
 	}
 
 }

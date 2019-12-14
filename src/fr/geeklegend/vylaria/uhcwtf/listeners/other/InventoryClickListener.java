@@ -4,18 +4,18 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
-import fr.geeklegend.vylaria.uhcwtf.game.states.GameStates;
+import fr.geeklegend.vylaria.uhcwtf.game.GameState;
 
 public class InventoryClickListener implements Listener
 {
-
+	
 	@EventHandler
 	public void onInventoryClick(InventoryClickEvent event)
 	{
-		if (!GameStates.isState(GameStates.GAME))
+		if (!GameState.isState(GameState.GAME))
 		{
 			event.setCancelled(true);
 		}
 	}
-	
+
 }

@@ -4,18 +4,18 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 
-import fr.geeklegend.vylaria.uhcwtf.game.states.GameStates;
+import fr.geeklegend.vylaria.uhcwtf.game.GameState;
 
 public class FoodLevelChangeListener implements Listener
 {
-	
+
 	@EventHandler
 	public void onFoodLevelChange(FoodLevelChangeEvent event)
 	{
-		if (!GameStates.isState(GameStates.GAME))
+		if (!GameState.isState(GameState.GAME))
 		{
 			event.setCancelled(true);
 		}
 	}
-
+	
 }

@@ -6,29 +6,27 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 
-import fr.geeklegend.vylaria.uhcwtf.game.manager.GameManager;
-import fr.geeklegend.vylaria.uhcwtf.game.states.GameStates;
+import fr.geeklegend.vylaria.uhcwtf.game.GameManager;
+import fr.geeklegend.vylaria.uhcwtf.game.GameState;
 
 public class BlockBreakListener implements Listener
 {
-
-	public BlockBreakListener()
-	{
-		GameManager.loadItems();
-	}
 	
 	@EventHandler
 	public void onBlockBreak(BlockBreakEvent event)
 	{
 		Block block = event.getBlock();
-
-		if (!GameStates.isState(GameStates.GAME))
+		
+		if (GameState.isState(GameState.WAITING))
 		{
 			event.setCancelled(true);
-		} else
+		} else if (GameState.isState(GameState.GAME))
 		{
-			block.setType(Material.AIR);
-			block.getWorld().dropItemNaturally(block.getLocation(), GameManager.getRandomItem());
+			if (block != null)
+			{
+				block.setType(Material.AIR);
+				block.getWorld().dropItemNaturally(block.getLocation(), GameManager.getRandomItem());
+			}
 		}
 	}
 
